@@ -1,0 +1,46 @@
+services:
+  # Auth service
+  auth-service:
+    build:
+      # It defines path to the directory
+      context: ./src/auth
+      # It defines path to the dockerfile
+      dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    ports:
+      - "${AUTH_PORT}:${AUTH_PORT}"
+    command: npm run dev
+    volumes:
+      - ./src/auth:/app
+      - /app/node_modules
+    networks:
+      - internal
+
+  #Gateway
+  gateway:
+    build:
+      # It defines path to the directory
+      context: ./src/gateway
+      # It defines path to the dockerfile
+      dockerfile: Dockerfile
+    env_file:
+      # Path to env file
+      - ./.env
+    ports:
+      # Variables declared inside .env file
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+    command: npm run dev
+    volumes:
+      # This is the bind mount which will reflect file changes in container
+      - ./src/gateway:/app
+      # This is the node_modules volume
+      - /app/node_modules
+    networks:
+      - internal
+    depends_on:
+      - auth-service
+
+networks:
+  internal:
+    driver: bridge
