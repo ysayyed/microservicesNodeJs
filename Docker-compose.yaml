@@ -1,4 +1,18 @@
 services:
+  # Auth DB
+  mongo-auth:
+    image: mongo
+    ports:
+      - "27017:27017"
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+    volumes:
+      - auth_db:/data/db
+    networks:
+      - internal
+
   # Auth service
   auth-service:
     build:
@@ -13,9 +27,11 @@ services:
     command: npm run dev
     volumes:
       - ./src/auth:/app
-      - /app/node_modules
+      - node_modules_auth:/app/node_modules
     networks:
       - internal
+    depends_on:
+      - mongo-auth
 
   #Gateway
   gateway:
@@ -35,7 +51,7 @@ services:
       # This is the bind mount which will reflect file changes in container
       - ./src/gateway:/app
       # This is the node_modules volume
-      - /app/node_modules
+      - node_modules_gateway:/app/node_modules
     networks:
       - internal
     depends_on:
@@ -44,3 +60,7 @@ services:
 networks:
   internal:
     driver: bridge
+volumes:
+  auth_db:
+  node_modules_auth:
+  node_modules_gateway:

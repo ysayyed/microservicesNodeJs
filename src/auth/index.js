@@ -2,24 +2,33 @@ import express from "express";
 import { config } from "dotenv";
 import User from "./models/user.js";
 import { generateOtp, createToken } from "./utils/helper.js";
+import cors from "cors";
+import mongoose from "mongoose";
 
 config({
   path: "../../.env",
 });
+
+mongoose
+  .connect("mongodb://root:example@mongo-auth:27017/auth?authSource=admin")
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+  .catch((err) => {
+    console.error("Error connecting to MongoDB:", err);
+  });
 
 const app = express();
 const PORT = process.env.AUTH_PORT || "3001";
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-app.get("/", (req, res) => {
-  res.status(200).send("<h1>Auth service health ok</h1>");
-});
+app.use(cors({ origin: "http://localhost:3000" }));
 
 app.post("/signup", async (req, res) => {
   try {
     const { email } = req.body;
+    console.log("Inside Signup");
     const available = await User.findOne({ email });
     if (available) {
       throw new Error("User already available!");
@@ -34,6 +43,15 @@ app.post("/signup", async (req, res) => {
     console.log(error);
     res.status(500).send({ message: error.message });
   }
+});
+
+app.get("/", (req, res) => {
+  res.status(200).send("<h1>Auth service health ok</h1>");
+});
+
+app.get("/change", async (req, res) => {
+  const user = await User.find({});
+  res.status(200).send(user);
 });
 
 app.post("/verify-otp", async (req, res) => {
