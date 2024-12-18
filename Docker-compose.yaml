@@ -5,9 +5,11 @@ services:
     ports:
       - "27017:27017"
     restart: always
+    env_file:
+      - ./.env
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=example
+      - MONGO_INITDB_ROOT_USERNAME="${AUTHDB_ADMIN_UNAME}"
+      - MONGO_INITDB_ROOT_PASSWORD="${AUTHDB_ADMIN_PASS}"
     volumes:
       - auth_db:/data/db
     networks:
